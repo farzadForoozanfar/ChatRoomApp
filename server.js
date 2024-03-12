@@ -17,9 +17,9 @@ const botName = 'Admin';
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/send-message', (req, res) => {
-    const chatId = '-1001936062958';
-    const message = 'Hello, World!';
-
+    const chatId = "-1001936062958";
+    const message = req.params.message ? req.params.message : req.query.message;
+    
     bot.sendMessage(chatId, message)
         .then(() => {
             res.send('Message sent successfully');
