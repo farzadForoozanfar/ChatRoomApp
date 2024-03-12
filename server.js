@@ -10,14 +10,14 @@ const { userJoin, getCurrentUser, userLeave, getRoomUsers } = require('./utility
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
-const bot = new TelegramBot('6167284944:AAEPduBDwR5AqN7djqgXccDlShEWh_YZAP0');
+const bot = new TelegramBot('6931081448:AAFz0kXyNlWd6hcjCGNzLZCjO5IRv_A4HOE');
 
 const botName = 'Admin';
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/send-message', (req, res) => {
-    const chatId = '-1001378955873';
+    const chatId = '-1001936062958';
     const message = 'Hello, World!';
 
     bot.sendMessage(chatId, message)
