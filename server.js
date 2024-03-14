@@ -3,6 +3,7 @@ const path = require('path');
 const http = require('http');
 const socketio = require('socket.io');
 const TelegramBot = require('node-telegram-bot-api');
+const { setIpWithTTL, isIpExpired } = require('./utility/ip-map');
 
 const formatMessage = require('./utility/messages');
 const { userJoin, getCurrentUser, userLeave, getRoomUsers } = require('./utility/users');
@@ -13,20 +14,29 @@ const io = socketio(server);
 const bot = new TelegramBot('6931081448:AAFz0kXyNlWd6hcjCGNzLZCjO5IRv_A4HOE');
 
 const botName = 'Admin';
+const telegramResponseTpl = "نام و نام خانوادگی: $name\nشماره تماس: $mobile\nمتن پیام: $msg";
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/send-message', (req, res) => {
-    const chatId = "-1001936062958";
-    const message = req.params.message ? req.params.message : req.query.message;
+    const clientIp = req.ip;
+
+    if (isIpExpired(clientIp)) {
+        setIpWithTTL(clientIp);
+        const chatId = "-1001936062958";
+        const data = req.query;
+        const message = telegramResponseTpl.replace('$name', data.name).replace('$mobile', data.mobile).replace('$msg', data.message);
+
+        bot.sendMessage(chatId, message)
+            .then(() => {
+                res.send('Message sent successfully');
+            })
+            .catch((error) => {
+                res.status(500).send('Error sending message: ' + error.message);
+            });
+    }
     
-    bot.sendMessage(chatId, message)
-        .then(() => {
-            res.send('Message sent successfully');
-        })
-        .catch((error) => {
-            res.status(500).send('Error sending message: ' + error.message);
-        });
+    res.send('Message sent successfully');
 });
 
 io.on('connection', socket => {
@@ -66,6 +76,6 @@ io.on('connection', socket => {
 
 });
 
-const PORT = 3000 || process.env.PORT;
+const PORT = 4000;
 
 server.listen(PORT, () => console.log(`Server Start On Port ${PORT}`));
