@@ -3,6 +3,7 @@ const path = require('path');
 const http = require('http');
 const socketio = require('socket.io');
 const TelegramBot = require('node-telegram-bot-api');
+const request = require("request");
 
 const formatMessage = require('./utility/messages');
 const { userJoin, getCurrentUser, userLeave, getRoomUsers } = require('./utility/users');
@@ -19,7 +20,7 @@ const ttl = 5 * 60;
 let ipMap = new Map();
 
 const setIpWithTTL = (ip) => {
-    ipMap.set(ip, Date.now() + ttl * 1000);
+    // ipMap.set(ip, Date.now() + ttl * 1000);
     console.log('set', ipMap);
 };
 
@@ -30,6 +31,44 @@ const isIpExpired = (ip) => {
     return !ipTime;
 };
 
+function convertToIranFormat(mobileNumber) {
+    mobileNumber = mobileNumber.replace(/\D/g, '');
+
+    if (mobileNumber.startsWith('09')) {
+        return '98' + mobileNumber.slice(1);
+    }
+    else if (mobileNumber.startsWith('989')) {
+        return mobileNumber;
+    }
+    else if (mobileNumber.startsWith('+989')) {
+        return mobileNumber.slice(1);
+    }
+    else {
+        return false;
+    }
+}
+
+const sendSms = (dest, msg) => {
+    const options = {
+        method: 'POST',
+        url: 'https://panel.asanak.com/webservice/v2rest/sendsms',
+        headers: {
+            'content-type': 'application/x-www-form-urlencoded'
+        },
+        form: {
+            username: 'farzad1forouzanfar',
+            password: 'F@rzad306762',
+            source: '98210000925306762',
+            destination: dest,
+            message: msg
+        }
+    };
+    
+    request(options, function(error, response, body) {
+        if (error) console.log('Error on sendSms :' + error);
+        console.log(body);
+    });
+}
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/send-message', (req, res) => {
@@ -43,7 +82,14 @@ app.get('/send-message', (req, res) => {
         // res.send('Message sent successfully');
         bot.sendMessage(chatId, message)
             .then(() => {
+                const fomattedNumber = convertToIranFormat(data.mobile);
+
+                if (fomattedNumber) {
+                    const welcomeMsg = `${data.name} عزیز، پیام شما با موفقیت دریافت شد و پس از بررسی توسط تیم حرفه ای مون لاین با شما تماس گرفته خواهد شد. \n\n باتشکر`;
+                    sendSms(fomattedNumber, welcomeMsg);
+                }
                 res.send('Message sent successfully');
+                
             })
             .catch((error) => {
                 res.status(500).send('Error sending message: ' + error.message);
