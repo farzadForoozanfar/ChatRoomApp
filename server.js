@@ -3,6 +3,7 @@ const path = require('path');
 const http = require('http');
 const socketio = require('socket.io');
 const TelegramBot = require('node-telegram-bot-api');
+const axios = require('axios');
 
 const formatMessage = require('./utility/messages');
 const { userJoin, getCurrentUser, userLeave, getRoomUsers } = require('./utility/users');
@@ -48,25 +49,23 @@ function convertToIranFormat(mobileNumber) {
 }
 
 const sendSms = (dest, msg) => {
-    const url = 'https://panel.asanak.com/webservice/v2rest/sendsms';
-    const formData = new URLSearchParams();
-    formData.append('username', 'farzad1forouzanfar');
-    formData.append('password', 'F@rzad306762');
-    formData.append('source', '98210000925306762');
-    formData.append('destination', dest);
-    formData.append('message', msg);
+    const url = 'https://panel.asanak.com/webservice/v1rest/sendsms';
+    const data = new URLSearchParams();
+    data.append('username', 'farzad1forouzanfar');
+    data.append('password', 'F@rzad306762');
+    data.append('source', '98210000925306762');
+    data.append('destination', dest);
+    data.append('message', msg);
 
-    fetch(url, {
-        method: 'POST',
+    axios.post(url, data, {
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: formData
+        }
     })
-    .then(response => response.text())
-    .then(data => console.log(data))
+    .then(response => console.log(response.data))
     .catch(error => console.error('Error on sendSms:', error));
 }
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 

@@ -15,6 +15,7 @@
   "author": "Farzad Foruozanfar",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.6.8",
     "express": "^4.18.2",
     "moment": "^2.29.4",
     "node-telegram-bot-api": "^0.65.1",
