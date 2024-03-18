@@ -3,7 +3,6 @@ const path = require('path');
 const http = require('http');
 const socketio = require('socket.io');
 const TelegramBot = require('node-telegram-bot-api');
-const request = require("request");
 
 const formatMessage = require('./utility/messages');
 const { userJoin, getCurrentUser, userLeave, getRoomUsers } = require('./utility/users');
