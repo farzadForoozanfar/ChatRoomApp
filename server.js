@@ -49,26 +49,26 @@ function convertToIranFormat(mobileNumber) {
 }
 
 const sendSms = (dest, msg) => {
-    const options = {
+    const url = 'https://panel.asanak.com/webservice/v2rest/sendsms';
+    const formData = new URLSearchParams();
+    formData.append('username', 'farzad1forouzanfar');
+    formData.append('password', 'F@rzad306762');
+    formData.append('source', '98210000925306762');
+    formData.append('destination', dest);
+    formData.append('message', msg);
+
+    fetch(url, {
         method: 'POST',
-        url: 'https://panel.asanak.com/webservice/v2rest/sendsms',
         headers: {
-            'content-type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/x-www-form-urlencoded'
         },
-        form: {
-            username: 'farzad1forouzanfar',
-            password: 'F@rzad306762',
-            source: '98210000925306762',
-            destination: dest,
-            message: msg
-        }
-    };
-    
-    request(options, function(error, response, body) {
-        if (error) console.log('Error on sendSms :' + error);
-        console.log(body);
-    });
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => console.log(data))
+    .catch(error => console.error('Error on sendSms:', error));
 }
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/send-message', (req, res) => {
@@ -80,7 +80,7 @@ app.get('/send-message', (req, res) => {
         const data = req.query;
         const message = telegramResponseTpl.replace('$name', data.name).replace('$mobile', data.mobile).replace('$msg', data.message);
         // res.send('Message sent successfully');
-        
+
         bot.sendMessage(chatId, message)
             .then(() => {
                 const fomattedNumber = convertToIranFormat(data.mobile);
