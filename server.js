@@ -80,6 +80,7 @@ app.get('/send-message', (req, res) => {
         const data = req.query;
         const message = telegramResponseTpl.replace('$name', data.name).replace('$mobile', data.mobile).replace('$msg', data.message);
         // res.send('Message sent successfully');
+        
         bot.sendMessage(chatId, message)
             .then(() => {
                 const fomattedNumber = convertToIranFormat(data.mobile);
