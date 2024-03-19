@@ -4,6 +4,7 @@ const http = require('http');
 const socketio = require('socket.io');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
+const cors = require('cors');
 
 const formatMessage = require('./utility/messages');
 const { userJoin, getCurrentUser, userLeave, getRoomUsers } = require('./utility/users');
@@ -16,18 +17,16 @@ const bot = new TelegramBot('6931081448:AAFz0kXyNlWd6hcjCGNzLZCjO5IRv_A4HOE');
 const botName = 'Admin';
 const telegramResponseTpl = "نام و نام خانوادگی: $name\nشماره تماس: $mobile\nمتن پیام: $msg";
 
-const ttl = 5 * 60;
+const ttl = 1 * 60;
 let ipMap = new Map();
 
 const setIpWithTTL = (ip) => {
-    // ipMap.set(ip, Date.now() + ttl * 1000);
-    console.log('set', ipMap);
+    ipMap.set(ip, Date.now() + ttl * 1000);
 };
 
 const isIpExpired = (ip) => {
     ipMap = new Map([...ipMap].filter(([, time]) => Date.now() < time));
     const ipTime = ipMap.get(ip);
-    console.log('get', ipMap);
     return !ipTime;
 };
 
@@ -49,7 +48,7 @@ function convertToIranFormat(mobileNumber) {
 }
 
 const sendSms = (dest, msg) => {
-    const url = 'https://panel.asanak.com/webservice/v1rest/sendsms';
+    const url = 'https://panel.asanak.com/webservice/v2rest/sendsms';
     const data = new URLSearchParams();
     data.append('username', 'farzad1forouzanfar');
     data.append('password', 'F@rzad306762');
@@ -66,7 +65,9 @@ const sendSms = (dest, msg) => {
     .catch(error => console.error('Error on sendSms:', error));
 }
 
-
+app.use(cors({
+    origin: '*'
+}));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/send-message', (req, res) => {
