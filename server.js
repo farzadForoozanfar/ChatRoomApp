@@ -15,7 +15,7 @@ const io = socketio(server);
 const bot = new TelegramBot('6931081448:AAFz0kXyNlWd6hcjCGNzLZCjO5IRv_A4HOE');
 
 const botName = 'Admin';
-const telegramResponseTpl = "نام و نام خانوادگی: $name\nشماره تماس: $mobile\nمتن پیام: $msg";
+const telegramResponseTpl = "نام و نام خانوادگی: $name\nشماره تماس: $mobile\nمتن پیام: $msg\n";
 
 const ttl = 1 * 60;
 let ipMap = new Map();
@@ -31,6 +31,8 @@ const isIpExpired = (ip) => {
 };
 
 function convertToIranFormat(mobileNumber) {
+    if (!mobileNumber) return false;
+
     mobileNumber = mobileNumber.replace(/\D/g, '');
 
     if (mobileNumber.startsWith('09')) {
@@ -47,19 +49,11 @@ function convertToIranFormat(mobileNumber) {
     }
 }
 
-const sendSms = (dest, msg) => {
-    const url = 'https://panel.asanak.com/webservice/v2rest/sendsms';
-    const data = new URLSearchParams();
-    data.append('username', 'farzad1forouzanfar');
-    data.append('password', 'F@rzad306762');
-    data.append('source', '98210000925306762');
-    data.append('destination', dest);
-    data.append('message', msg);
+const sendSms = (data) => {
+    const url = 'https://send-sms.liara.run/send-message';
 
-    axios.post(url, data, {
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
+    axios.get(url, {
+        params: data
     })
     .then(response => console.log(response.data))
     .catch(error => console.error('Error on sendSms:', error));
@@ -78,7 +72,6 @@ app.get('/send-message', (req, res) => {
         const chatId = "-1001936062958";
         const data = req.query;
         const message = telegramResponseTpl.replace('$name', data.name).replace('$mobile', data.mobile).replace('$msg', data.message);
-        // res.send('Message sent successfully');
 
         bot.sendMessage(chatId, message)
             .then(() => {
@@ -86,7 +79,7 @@ app.get('/send-message', (req, res) => {
 
                 if (fomattedNumber) {
                     const welcomeMsg = `${data.name} عزیز، پیام شما با موفقیت دریافت شد و پس از بررسی توسط تیم حرفه ای مون لاین با شما تماس گرفته خواهد شد. \n\n باتشکر`;
-                    sendSms(fomattedNumber, welcomeMsg);
+                    sendSms({number:fomattedNumber, msg:welcomeMsg});
                 }
                 res.send('Message sent successfully');
                 
@@ -97,7 +90,7 @@ app.get('/send-message', (req, res) => {
     }
     else
     {
-        res.send('Message sent successfully');
+        res.status(429).send('Please Try Later');
     }
 });
 
